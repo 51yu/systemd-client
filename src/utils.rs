@@ -70,7 +70,7 @@ pub fn build_nonblock_client(
     Ok((proxy, jh))
 }
 
-pub fn path_to_string<'a>(path: dbus::Path<'a>) -> Result<String> {
+pub fn path_to_string(path: dbus::Path) -> Result<String> {
     let path = path.into_cstring().into_string()?;
     Ok(path)
 }
