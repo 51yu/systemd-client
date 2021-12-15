@@ -17,10 +17,18 @@ pub type Result<T> = result::Result<T, Error>;
 pub enum ErrorImpl {
     #[error("dbus error, detail: {0:?}")]
     DBus(#[from] dbus::Error),
+    #[error("into string error, detail: {0:?}")]
+    IntoString(#[from] std::ffi::IntoStringError),
 }
 
 impl From<dbus::Error> for Error {
     fn from(err: dbus::Error) -> Self {
         Error(Box::new(ErrorImpl::DBus(err)))
+    }
+}
+
+impl From<std::ffi::IntoStringError> for Error {
+    fn from(err: std::ffi::IntoStringError) -> Self {
+        Error(Box::new(ErrorImpl::IntoString(err)))
     }
 }
