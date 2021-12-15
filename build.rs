@@ -3,8 +3,8 @@ use std::io::Write;
 use dbus::blocking::{self, stdintf::org_freedesktop_dbus::Introspectable};
 use dbus_codegen::{self, ConnectionType, GenOpts};
 
-const SYSTEMD_DESTINATION: &str = "org.freedesktop.systemd1";
-const SYSTEMD_MANAGER_OBJECT_PATH: &str = "/org/freedesktop/systemd1";
+const DESTINATION_SYSTEMD: &str = "org.freedesktop.systemd1";
+const OBJECT_PATH_SYSTEMD_MANAGER: &str = "/org/freedesktop/systemd1";
 const INTROSPECT_TIMEOUT_SECS: u64 = 10;
 
 const OUTPUT_MANAGER_OBJECT_BLOCKING_CLIENT: &str = "src/manager";
@@ -47,7 +47,7 @@ impl<'a> Generator<'a> {
     fn introspect(object_path: &str) -> anyhow::Result<String> {
         let connection = blocking::Connection::new_system()?;
         let proxy = connection.with_proxy(
-            SYSTEMD_DESTINATION,
+            DESTINATION_SYSTEMD,
             object_path,
             std::time::Duration::from_secs(INTROSPECT_TIMEOUT_SECS),
         );
@@ -90,14 +90,14 @@ impl<'a> Generator<'a> {
 fn main() {
     // generate manager object blocking proxy
     Generator::new()
-        .object_path(SYSTEMD_MANAGER_OBJECT_PATH)
+        .object_path(OBJECT_PATH_SYSTEMD_MANAGER)
         .output(OUTPUT_MANAGER_OBJECT_BLOCKING_CLIENT)
         .connection_type(ConnectionType::Blocking)
         .generate()
         .unwrap();
     // generate manager nonblock proxy
     Generator::new()
-        .object_path(SYSTEMD_MANAGER_OBJECT_PATH)
+        .object_path(OBJECT_PATH_SYSTEMD_MANAGER)
         .output(OUTPUT_MANAGER_OBJECT_NONBLOCK_CLIENT)
         .connection_type(ConnectionType::Nonblock)
         .generate()
