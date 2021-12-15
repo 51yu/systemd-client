@@ -19,6 +19,8 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
+      - name: Install lib
+        run: sudo apt install libdbus-1-dev pkg-config
       - uses: actions-rs/cargo@v1
         with:
           command: check
@@ -32,6 +34,8 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
+      - name: Install lib
+        run: sudo apt install libdbus-1-dev pkg-config
       - uses: actions-rs/cargo@v1
         with:
           command: test
@@ -49,8 +53,8 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: fmt
-  fmt:
-    name: Rustfmt
+  clippy:
+    name: Clippy
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -59,7 +63,9 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
-      - run: rustup component add rustfmt
+      - run: rustup component add clippy
+      - name: Install lib
+        run: sudo apt install libdbus-1-dev pkg-config
       - uses: actions-rs/cargo@v1
         with:
-          command: fmt
+          command: clippy
