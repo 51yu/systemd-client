@@ -1,0 +1,12 @@
+[Unit]
+Description=test service
+After=
+startLimitIntervalSec=0
+
+[Service]
+ExecStart=/bin/echo aloha
+Restart=no
+RestartSec=100ms
+
+[Install]
+WantedBy=multi-user.target
