@@ -101,6 +101,8 @@ pub struct ServiceConfiguration<'a> {
     // a unit-less value in seconds, or a time span value such as "5min 20s"
     pub restart_sec: &'a str,
     pub working_directory: Option<&'a str>,
+    pub user: Option<&'a str>,
+    pub group: Option<&'a str>,
 }
 
 impl<'a> Display for ServiceConfiguration<'a> {
@@ -108,6 +110,12 @@ impl<'a> Display for ServiceConfiguration<'a> {
         writeln!(f, "[Service]")?;
         if let Some(working_directory) = self.working_directory {
             writeln!(f, "WorkingDirectory={}", working_directory)?;
+        }
+        if let Some(user) = self.user {
+            writeln!(f, "User={}", user)?;
+        }
+        if let Some(group) = self.group {
+            writeln!(f, "Group={}", group)?;
         }
         writeln!(f, "ExecStart={}", self.exec_start.join(" "))?;
         writeln!(f, "Restart={}", self.restart_policy)?;
@@ -127,6 +135,8 @@ pub struct ServiceConfigurationBuilder<'a> {
     pub restart_policy: RestartPolicy,
     pub restart_sec: &'a str,
     pub working_directory: Option<&'a str>,
+    pub user: Option<&'a str>,
+    pub group: Option<&'a str>,
 }
 
 impl<'a> Default for ServiceConfigurationBuilder<'a> {
@@ -137,6 +147,8 @@ impl<'a> Default for ServiceConfigurationBuilder<'a> {
             restart_policy: RestartPolicy::No,
             restart_sec: "100ms",
             working_directory: None,
+            user: None,
+            group: None,
         }
     }
 }
@@ -167,18 +179,32 @@ impl<'a> ServiceConfigurationBuilder<'a> {
         self
     }
 
+    pub fn user(mut self, user: &'a str) -> Self {
+        self.user = Some(user);
+        self
+    }
+
+    pub fn group(mut self, group: &'a str) -> Self {
+        self.group = Some(group);
+        self
+    }
+
     pub fn build(self) -> ServiceConfiguration<'a> {
         let ty = self.ty;
         let exec_start = self.exec_start;
         let restart_policy = self.restart_policy;
         let restart_sec = self.restart_sec;
         let working_directory = self.working_directory;
+        let user = self.user;
+        let group = self.group;
         ServiceConfiguration {
             ty,
             exec_start,
             restart_policy,
             restart_sec,
             working_directory,
+            user,
+            group,
         }
     }
 }
