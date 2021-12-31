@@ -7,8 +7,7 @@ const DESTINATION_SYSTEMD: &str = "org.freedesktop.systemd1";
 const OBJECT_PATH_SYSTEMD_MANAGER: &str = "/org/freedesktop/systemd1";
 const INTROSPECT_TIMEOUT_SECS: u64 = 10;
 
-const OUTPUT_MANAGER_OBJECT_BLOCKING_CLIENT: &str = "src/manager";
-const OUTPUT_MANAGER_OBJECT_NONBLOCK_CLIENT: &str = "src/manager";
+const OUTPUT_MANAGER_OBJECT_CLIENT: &str = "src/manager";
 
 const MODULE_BLOCKING: &str = "blocking.rs";
 const MODULE_NONBLOCK: &str = "nonblock.rs";
@@ -91,14 +90,14 @@ fn main() {
     // generate manager object blocking proxy
     Generator::new()
         .object_path(OBJECT_PATH_SYSTEMD_MANAGER)
-        .output(OUTPUT_MANAGER_OBJECT_BLOCKING_CLIENT)
+        .output(OUTPUT_MANAGER_OBJECT_CLIENT)
         .connection_type(ConnectionType::Blocking)
         .generate()
         .unwrap();
     // generate manager nonblock proxy
     Generator::new()
         .object_path(OBJECT_PATH_SYSTEMD_MANAGER)
-        .output(OUTPUT_MANAGER_OBJECT_NONBLOCK_CLIENT)
+        .output(OUTPUT_MANAGER_OBJECT_CLIENT)
         .connection_type(ConnectionType::Nonblock)
         .generate()
         .unwrap();

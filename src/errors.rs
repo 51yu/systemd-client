@@ -19,6 +19,8 @@ pub enum ErrorImpl {
     DBus(#[from] dbus::Error),
     #[error("into string error, detail: {0:?}")]
     IntoString(#[from] std::ffi::IntoStringError),
+    #[error("io error, detail: {0:?}")]
+    Io(#[from] std::io::Error),
 }
 
 impl From<dbus::Error> for Error {
@@ -30,5 +32,11 @@ impl From<dbus::Error> for Error {
 impl From<std::ffi::IntoStringError> for Error {
     fn from(err: std::ffi::IntoStringError) -> Self {
         Error(Box::new(ErrorImpl::IntoString(err)))
+    }
+}
+
+impl From<std::io::Error> for Error {
+    fn from(err: std::io::Error) -> Self {
+        Error(Box::new(ErrorImpl::Io(err)))
     }
 }
