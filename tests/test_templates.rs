@@ -5,7 +5,9 @@ fn test_service_template() {
     let unit_builder = UnitConfiguration::builder().description("test service");
     let svc_builder = ServiceConfiguration::builder()
         .exec_start(vec!["/bin/echo", "aloha"])
-        .working_directory("/path/to/directory");
+        .working_directory("/path/to/directory")
+        .user("guest")
+        .group("guest");
     let svc_unit = ServiceUnitConfiguration::builder()
         .unit(unit_builder)
         .service(svc_builder)

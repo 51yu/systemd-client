@@ -5,6 +5,8 @@ startLimitIntervalSec=0
 
 [Service]
 WorkingDirectory=/path/to/directory
+User=guest
+Group=guest
 ExecStart=/bin/echo aloha
 Restart=no
 RestartSec=100ms
