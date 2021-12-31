@@ -3,7 +3,9 @@ use systemd_client::{ServiceConfiguration, ServiceUnitConfiguration, UnitConfigu
 #[test]
 fn test_service_template() {
     let unit_builder = UnitConfiguration::builder().description("test service");
-    let svc_builder = ServiceConfiguration::builder().exec_start(vec!["/bin/echo", "aloha"]);
+    let svc_builder = ServiceConfiguration::builder()
+        .exec_start(vec!["/bin/echo", "aloha"])
+        .working_directory("/path/to/directory");
     let svc_unit = ServiceUnitConfiguration::builder()
         .unit(unit_builder)
         .service(svc_builder)
