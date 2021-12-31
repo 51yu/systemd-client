@@ -100,11 +100,15 @@ pub struct ServiceConfiguration<'a> {
     pub restart_policy: RestartPolicy,
     // a unit-less value in seconds, or a time span value such as "5min 20s"
     pub restart_sec: &'a str,
+    pub working_directory: Option<&'a str>,
 }
 
 impl<'a> Display for ServiceConfiguration<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "[Service]")?;
+        if let Some(working_directory) = self.working_directory {
+            writeln!(f, "WorkingDirectory={}", working_directory)?;
+        }
         writeln!(f, "ExecStart={}", self.exec_start.join(" "))?;
         writeln!(f, "Restart={}", self.restart_policy)?;
         writeln!(f, "RestartSec={}", self.restart_sec)
@@ -122,6 +126,7 @@ pub struct ServiceConfigurationBuilder<'a> {
     pub exec_start: Vec<&'a str>,
     pub restart_policy: RestartPolicy,
     pub restart_sec: &'a str,
+    pub working_directory: Option<&'a str>,
 }
 
 impl<'a> Default for ServiceConfigurationBuilder<'a> {
@@ -131,6 +136,7 @@ impl<'a> Default for ServiceConfigurationBuilder<'a> {
             exec_start: vec![],
             restart_policy: RestartPolicy::No,
             restart_sec: "100ms",
+            working_directory: None,
         }
     }
 }
@@ -156,16 +162,23 @@ impl<'a> ServiceConfigurationBuilder<'a> {
         self
     }
 
+    pub fn working_directory(mut self, working_directory: &'a str) -> Self {
+        self.working_directory = Some(working_directory);
+        self
+    }
+
     pub fn build(self) -> ServiceConfiguration<'a> {
         let ty = self.ty;
         let exec_start = self.exec_start;
         let restart_policy = self.restart_policy;
         let restart_sec = self.restart_sec;
+        let working_directory = self.working_directory;
         ServiceConfiguration {
             ty,
             exec_start,
             restart_policy,
             restart_sec,
+            working_directory,
         }
     }
 }
