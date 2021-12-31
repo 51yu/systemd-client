@@ -1,6 +1,6 @@
 [package]
 name = "systemd_client"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 authors = ["Li Yu <li.yu.sh0211@gmail.com>"]
 license = "Apache-2.0"
