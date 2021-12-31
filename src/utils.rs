@@ -1,13 +1,14 @@
 use crate::Result;
 use dbus::{blocking, nonblock};
 use dbus_tokio::connection;
-use std::{ops::Deref, sync::Arc, time::Duration};
+use std::{io::Write, ops::Deref, sync::Arc, time::Duration};
 use tokio::task::JoinHandle;
 use tracing::error;
 
 const DESTINATION_SYSTEMD: &str = "org.freedesktop.systemd1";
 const OBJECT_PATH_SYSTEMD_MANAGER: &str = "/org/freedesktop/systemd1";
 const CONNECTION_TIMEOUT_SECS: u64 = 5;
+const SYSTEMD_UNIT_CONFIGURATION_DIRECTORY: &str = "/etc/systemd/system";
 
 pub enum SystemdObjectType {
     Manager,
@@ -73,4 +74,14 @@ pub fn build_nonblock_client(
 pub fn path_to_string(path: dbus::Path) -> Result<String> {
     let path = path.into_cstring().into_string()?;
     Ok(path)
+}
+
+pub fn create_unit_configuration_file(unit_name: &str, buffer: &[u8]) -> Result<()> {
+    let mut path = std::path::PathBuf::from(SYSTEMD_UNIT_CONFIGURATION_DIRECTORY);
+    path.push(unit_name);
+    let file = std::fs::File::create(path.as_path())?;
+    let mut writer = std::io::BufWriter::new(file);
+    writer.write_all(buffer)?;
+    writer.flush()?;
+    Ok(())
 }
