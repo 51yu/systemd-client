@@ -10,8 +10,9 @@ const OBJECT_PATH_SYSTEMD_MANAGER: &str = "/org/freedesktop/systemd1";
 const CONNECTION_TIMEOUT_SECS: u64 = 5;
 const SYSTEMD_UNIT_CONFIGURATION_DIRECTORY: &str = "/etc/systemd/system";
 
-pub enum SystemdObjectType {
+pub enum SystemdObjectType<'a> {
     Manager,
+    Custom(&'a str),
 }
 
 pub struct DerefContainer<T> {
@@ -36,7 +37,11 @@ pub fn build_blocking_client(
     object_ty: SystemdObjectType,
 ) -> Result<blocking::Proxy<'static, DerefContainer<blocking::Connection>>> {
     let object_path = match object_ty {
-        SystemdObjectType::Manager => OBJECT_PATH_SYSTEMD_MANAGER,
+        SystemdObjectType::Manager => dbus::strings::Path::new(OBJECT_PATH_SYSTEMD_MANAGER)
+            .expect("invalid manager object path"),
+        SystemdObjectType::Custom(object_path) => {
+            dbus::strings::Path::new(object_path).expect("invalid custom object path")
+        }
     };
     let conn = blocking::Connection::new_system()?;
     let proxy = blocking::Proxy::new(
@@ -55,7 +60,11 @@ pub fn build_nonblock_client(
     JoinHandle<()>,
 )> {
     let object_path = match object_ty {
-        SystemdObjectType::Manager => OBJECT_PATH_SYSTEMD_MANAGER,
+        SystemdObjectType::Manager => dbus::strings::Path::new(OBJECT_PATH_SYSTEMD_MANAGER)
+            .expect("invalid manager object path"),
+        SystemdObjectType::Custom(object_path) => {
+            dbus::strings::Path::new(object_path).expect("invalid custom object path")
+        }
     };
     let (resource, conn) = connection::new_system_sync()?;
     let jh = tokio::spawn(async {
