@@ -1,18 +1,16 @@
-use crate::Result;
+use crate::{
+    Result, CONNECTION_TIMEOUT_SECS, DESTINATION_SYSTEMD, OBJECT_PATH_SYSTEMD_MANAGER,
+    SYSTEMD_UNIT_CONFIGURATION_DIRECTORY,
+};
 use dbus::{blocking, nonblock};
 use dbus_tokio::connection;
 use std::{io::Write, ops::Deref, sync::Arc, time::Duration};
 use tokio::task::JoinHandle;
 use tracing::error;
 
-const DESTINATION_SYSTEMD: &str = "org.freedesktop.systemd1";
-const OBJECT_PATH_SYSTEMD_MANAGER: &str = "/org/freedesktop/systemd1";
-const CONNECTION_TIMEOUT_SECS: u64 = 5;
-const SYSTEMD_UNIT_CONFIGURATION_DIRECTORY: &str = "/etc/systemd/system";
-
 pub enum SystemdObjectType<'a> {
     Manager,
-    Custom(&'a str),
+    Unit(dbus::strings::Path<'a>),
 }
 
 pub struct DerefContainer<T> {
@@ -34,14 +32,12 @@ impl<T> DerefContainer<T> {
 }
 
 pub fn build_blocking_client(
-    object_ty: SystemdObjectType,
-) -> Result<blocking::Proxy<'static, DerefContainer<blocking::Connection>>> {
+    object_ty: SystemdObjectType<'_>,
+) -> Result<blocking::Proxy<'_, DerefContainer<blocking::Connection>>> {
     let object_path = match object_ty {
         SystemdObjectType::Manager => dbus::strings::Path::new(OBJECT_PATH_SYSTEMD_MANAGER)
             .expect("invalid manager object path"),
-        SystemdObjectType::Custom(object_path) => {
-            dbus::strings::Path::new(object_path).expect("invalid custom object path")
-        }
+        SystemdObjectType::Unit(object_path) => object_path,
     };
     let conn = blocking::Connection::new_system()?;
     let proxy = blocking::Proxy::new(
@@ -54,17 +50,15 @@ pub fn build_blocking_client(
 }
 
 pub fn build_nonblock_client(
-    object_ty: SystemdObjectType,
+    object_ty: SystemdObjectType<'_>,
 ) -> Result<(
-    nonblock::Proxy<'static, Arc<nonblock::SyncConnection>>,
+    nonblock::Proxy<'_, Arc<nonblock::SyncConnection>>,
     JoinHandle<()>,
 )> {
     let object_path = match object_ty {
         SystemdObjectType::Manager => dbus::strings::Path::new(OBJECT_PATH_SYSTEMD_MANAGER)
             .expect("invalid manager object path"),
-        SystemdObjectType::Custom(object_path) => {
-            dbus::strings::Path::new(object_path).expect("invalid custom object path")
-        }
+        SystemdObjectType::Unit(object_path) => object_path,
     };
     let (resource, conn) = connection::new_system_sync()?;
     let jh = tokio::spawn(async {
