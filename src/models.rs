@@ -1,13 +1,14 @@
 use crate::{path_to_string, Result};
 use dbus::arg;
 
-// https://www.freedesktop.org/software/systemd/man/systemctl.html#Unit%20Commands%20(Introspection%20and%20Modification)
+// systemctl --state=help
 #[derive(Clone, Debug, PartialEq)]
 pub enum UnitLoadStateType {
+    Stub,
     Loaded,
     NotFound,
-    BadSetting,
     Error,
+    Merged,
     Masked,
     Other(String),
 }
@@ -15,10 +16,11 @@ pub enum UnitLoadStateType {
 impl From<String> for UnitLoadStateType {
     fn from(origin: String) -> Self {
         match origin.as_str() {
+            "stub" => UnitLoadStateType::Stub,
             "loaded" => UnitLoadStateType::Loaded,
             "not-found" => UnitLoadStateType::NotFound,
-            "bad-setting" => UnitLoadStateType::BadSetting,
             "error" => UnitLoadStateType::Error,
+            "merged" => UnitLoadStateType::Merged,
             "masked" => UnitLoadStateType::Masked,
             _ => UnitLoadStateType::Other(origin),
         }
@@ -28,10 +30,11 @@ impl From<String> for UnitLoadStateType {
 impl ToString for UnitLoadStateType {
     fn to_string(&self) -> String {
         match self {
+            UnitLoadStateType::Stub => String::from("stub"),
             UnitLoadStateType::Loaded => String::from("loaded"),
             UnitLoadStateType::NotFound => String::from("not-found"),
-            UnitLoadStateType::BadSetting => String::from("bad-setting"),
             UnitLoadStateType::Error => String::from("error"),
+            UnitLoadStateType::Merged => String::from("merged"),
             UnitLoadStateType::Masked => String::from("masked"),
             UnitLoadStateType::Other(other) => other.to_owned(),
         }
@@ -79,14 +82,43 @@ impl ToString for UnitActiveStateType {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum UnitSubStateType {
+    Abandon,
+    Activating,
+    ActivatingDone,
     Active,
+    AutoRestart,
     Dead,
+    Deactivating,
+    DeactivatingSigterm,
+    DeactivatingSigkill,
+    Elapsed,
     Exited,
     Failed,
+    FinalSigterm,
+    FinalSigkill,
+    Mounting,
+    MountingDone,
     Mounted,
     Plugged,
     Listening,
+    Reload,
+    Remounting,
+    RemountingSigterm,
+    RemountingSigkill,
     Running,
+    Start,
+    StartChown,
+    StartPre,
+    StartPost,
+    Stop,
+    StopPost,
+    StopSigabrt,
+    StopSigterm,
+    StopSigkill,
+    Tentative,
+    Unmounting,
+    UnmountingSigterm,
+    UnmountingSigkill,
     Waiting,
     Other(String),
 }
@@ -94,14 +126,42 @@ pub enum UnitSubStateType {
 impl From<String> for UnitSubStateType {
     fn from(origin: String) -> Self {
         match origin.as_str() {
+            "abandon" => UnitSubStateType::Abandon,
+            "activating" => UnitSubStateType::Activating,
+            "activating-done" => UnitSubStateType::ActivatingDone,
             "active" => UnitSubStateType::Active,
+            "auto-restart" => UnitSubStateType::AutoRestart,
+            "deactivating" => UnitSubStateType::Deactivating,
+            "deactivating-sigterm" => UnitSubStateType::DeactivatingSigterm,
+            "deactivating-sigkill" => UnitSubStateType::DeactivatingSigkill,
             "dead" => UnitSubStateType::Dead,
+            "elapsed" => UnitSubStateType::Elapsed,
             "exited" => UnitSubStateType::Exited,
             "failed" => UnitSubStateType::Failed,
+            "final-sigterm" => UnitSubStateType::FinalSigterm,
+            "final-sigkill" => UnitSubStateType::FinalSigkill,
+            "mounting" => UnitSubStateType::Mounting,
+            "mounting-done" => UnitSubStateType::MountingDone,
             "mounted" => UnitSubStateType::Mounted,
             "plugged" => UnitSubStateType::Plugged,
             "listening" => UnitSubStateType::Listening,
+            "reload" => UnitSubStateType::Reload,
+            "remounting" => UnitSubStateType::Remounting,
+            "remounting-sigterm" => UnitSubStateType::RemountingSigterm,
+            "remounting-sigkill" => UnitSubStateType::RemountingSigkill,
             "running" => UnitSubStateType::Running,
+            "start" => UnitSubStateType::Start,
+            "start-chown" => UnitSubStateType::StartChown,
+            "start-pre" => UnitSubStateType::StartPre,
+            "start-post" => UnitSubStateType::StartPost,
+            "stop" => UnitSubStateType::Stop,
+            "stop-post" => UnitSubStateType::StopPost,
+            "stop-sigabrt" => UnitSubStateType::StopSigabrt,
+            "stop-sigterm" => UnitSubStateType::StopSigterm,
+            "stop-sigkill" => UnitSubStateType::StopSigkill,
+            "tentative" => UnitSubStateType::Tentative,
+            "unmounting-sigterm" => UnitSubStateType::UnmountingSigterm,
+            "unmounting-sigkill" => UnitSubStateType::UnmountingSigkill,
             "waiting" => UnitSubStateType::Waiting,
             _ => UnitSubStateType::Other(origin),
         }
@@ -111,14 +171,43 @@ impl From<String> for UnitSubStateType {
 impl ToString for UnitSubStateType {
     fn to_string(&self) -> String {
         match self {
+            UnitSubStateType::Abandon => String::from("abandon"),
+            UnitSubStateType::Activating => String::from("activating"),
+            UnitSubStateType::ActivatingDone => String::from("activating-done"),
             UnitSubStateType::Active => String::from("active"),
+            UnitSubStateType::AutoRestart => String::from("auto-restart"),
+            UnitSubStateType::Deactivating => String::from("deactivating"),
+            UnitSubStateType::DeactivatingSigterm => String::from("deactivating-sigkill"),
+            UnitSubStateType::DeactivatingSigkill => String::from("deactivating-sigkill"),
             UnitSubStateType::Dead => String::from("dead"),
+            UnitSubStateType::Elapsed => String::from("elapsed"),
             UnitSubStateType::Exited => String::from("exited"),
             UnitSubStateType::Failed => String::from("failed"),
+            UnitSubStateType::FinalSigterm => String::from("final-sigterm"),
+            UnitSubStateType::FinalSigkill => String::from("final-sigkill"),
+            UnitSubStateType::Mounting => String::from("mounting"),
+            UnitSubStateType::MountingDone => String::from("mounting-done"),
             UnitSubStateType::Mounted => String::from("mounted"),
             UnitSubStateType::Plugged => String::from("plugged"),
             UnitSubStateType::Listening => String::from("listening"),
+            UnitSubStateType::Reload => String::from("reload"),
+            UnitSubStateType::Remounting => String::from("remounting"),
+            UnitSubStateType::RemountingSigterm => String::from("remounting-sigterm"),
+            UnitSubStateType::RemountingSigkill => String::from("remounting-sigkill"),
             UnitSubStateType::Running => String::from("running"),
+            UnitSubStateType::Start => String::from("start"),
+            UnitSubStateType::StartChown => String::from("start-chown"),
+            UnitSubStateType::StartPre => String::from("start-pre"),
+            UnitSubStateType::StartPost => String::from("start-post"),
+            UnitSubStateType::Stop => String::from("stop"),
+            UnitSubStateType::StopPost => String::from("stop-post"),
+            UnitSubStateType::StopSigabrt => String::from("stop-sigabrt"),
+            UnitSubStateType::StopSigterm => String::from("stop-sigterm"),
+            UnitSubStateType::StopSigkill => String::from("stop-sigkill"),
+            UnitSubStateType::Tentative => String::from("tentative"),
+            UnitSubStateType::Unmounting => String::from("unmounting"),
+            UnitSubStateType::UnmountingSigterm => String::from("unmounting-sigterm"),
+            UnitSubStateType::UnmountingSigkill => String::from("unmounting-sigkill"),
             UnitSubStateType::Waiting => String::from("waiting"),
             UnitSubStateType::Other(other) => other.to_owned(),
         }
