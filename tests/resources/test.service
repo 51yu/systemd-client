@@ -1,7 +1,6 @@
 [Unit]
 Description=test service
 After=
-startLimitIntervalSec=0
 
 [Service]
 WorkingDirectory=/path/to/directory

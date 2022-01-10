@@ -4,15 +4,13 @@ use std::fmt::Display;
 pub struct UnitConfiguration<'a> {
     pub description: &'a str,
     pub after: Vec<&'a str>,
-    pub start_limit_interval_sec: u64,
 }
 
 impl<'a> Display for UnitConfiguration<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "[Unit]")?;
         writeln!(f, "Description={}", self.description)?;
-        writeln!(f, "After={}", self.after.join(" "))?;
-        writeln!(f, "startLimitIntervalSec={}", self.start_limit_interval_sec)
+        writeln!(f, "After={}", self.after.join(" "))
     }
 }
 
@@ -26,7 +24,6 @@ impl<'a> UnitConfiguration<'a> {
 pub struct UnitConfigurationBuilder<'a> {
     pub description: &'a str,
     pub after: Vec<&'a str>,
-    pub start_limit_interval_sec: u64,
 }
 
 impl<'a> UnitConfigurationBuilder<'a> {
@@ -40,19 +37,12 @@ impl<'a> UnitConfigurationBuilder<'a> {
         self
     }
 
-    pub fn start_limit_interval_sec(mut self, start_limit_interval_sec: u64) -> Self {
-        self.start_limit_interval_sec = start_limit_interval_sec;
-        self
-    }
-
     pub fn build(self) -> UnitConfiguration<'a> {
         let description = self.description;
         let after = self.after;
-        let start_limit_interval_sec = self.start_limit_interval_sec;
         UnitConfiguration {
             description,
             after,
-            start_limit_interval_sec,
         }
     }
 }
