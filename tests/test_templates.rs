@@ -7,7 +7,9 @@ fn test_service_template() {
         .exec_start(vec!["/bin/echo", "aloha"])
         .working_directory("/path/to/directory")
         .user("guest")
-        .group("guest");
+        .group("guest")
+        .env("FOO", "foo")
+        .env("BAR", "bar");
     let svc_unit = ServiceUnitConfiguration::builder()
         .unit(unit_builder)
         .service(svc_builder)

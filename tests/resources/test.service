@@ -1,12 +1,13 @@
 [Unit]
 Description=test service
 After=
-startLimitIntervalSec=0
 
 [Service]
 WorkingDirectory=/path/to/directory
 User=guest
 Group=guest
+Environment="FOO=foo"
+Environment="BAR=bar"
 ExecStart=/bin/echo aloha
 Restart=no
 RestartSec=100ms
