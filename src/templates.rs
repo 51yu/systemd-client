@@ -40,10 +40,7 @@ impl<'a> UnitConfigurationBuilder<'a> {
     pub fn build(self) -> UnitConfiguration<'a> {
         let description = self.description;
         let after = self.after;
-        UnitConfiguration {
-            description,
-            after,
-        }
+        UnitConfiguration { description, after }
     }
 }
 
@@ -83,6 +80,59 @@ impl Display for RestartPolicy {
     }
 }
 
+pub struct EnvironmentVariable<'a> {
+    pub key: &'a str,
+    pub value: &'a str,
+}
+
+impl<'a> EnvironmentVariable<'a> {
+    pub fn builder() -> EnvironmentVariableBuilder<'a> {
+        EnvironmentVariableBuilder::default()
+    }
+}
+
+impl<'a> Display for EnvironmentVariable<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}={}", self.key, self.value)
+    }
+}
+
+pub struct EnvironmentVariableBuilder<'a> {
+    pub key: Option<&'a str>,
+    pub value: Option<&'a str>,
+}
+
+impl<'a> Default for EnvironmentVariableBuilder<'a> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<'a> EnvironmentVariableBuilder<'a> {
+    pub fn new() -> Self {
+        EnvironmentVariableBuilder {
+            key: None,
+            value: None,
+        }
+    }
+
+    pub fn key(mut self, key: &'a str) -> Self {
+        self.key = Some(key);
+        self
+    }
+
+    pub fn value(mut self, value: &'a str) -> Self {
+        self.value = Some(value);
+        self
+    }
+
+    pub fn build(self) -> EnvironmentVariable<'a> {
+        let key = self.key.expect("key undefined");
+        let value = self.value.expect("value undefined");
+        EnvironmentVariable { key, value }
+    }
+}
+
 // https://www.freedesktop.org/software/systemd/man/systemd.service.html#Service%20Templates
 pub struct ServiceConfiguration<'a> {
     pub ty: ServiceType,
@@ -93,6 +143,7 @@ pub struct ServiceConfiguration<'a> {
     pub working_directory: Option<&'a str>,
     pub user: Option<&'a str>,
     pub group: Option<&'a str>,
+    pub envs: Vec<EnvironmentVariable<'a>>,
 }
 
 impl<'a> Display for ServiceConfiguration<'a> {
@@ -106,6 +157,9 @@ impl<'a> Display for ServiceConfiguration<'a> {
         }
         if let Some(group) = self.group {
             writeln!(f, "Group={}", group)?;
+        }
+        for env in self.envs.iter() {
+            writeln!(f, r#"Environment="{}""#, env)?;
         }
         writeln!(f, "ExecStart={}", self.exec_start.join(" "))?;
         writeln!(f, "Restart={}", self.restart_policy)?;
@@ -127,6 +181,7 @@ pub struct ServiceConfigurationBuilder<'a> {
     pub working_directory: Option<&'a str>,
     pub user: Option<&'a str>,
     pub group: Option<&'a str>,
+    pub envs: Vec<EnvironmentVariable<'a>>,
 }
 
 impl<'a> Default for ServiceConfigurationBuilder<'a> {
@@ -139,6 +194,7 @@ impl<'a> Default for ServiceConfigurationBuilder<'a> {
             working_directory: None,
             user: None,
             group: None,
+            envs: vec![],
         }
     }
 }
@@ -179,6 +235,12 @@ impl<'a> ServiceConfigurationBuilder<'a> {
         self
     }
 
+    pub fn env(mut self, key: &'a str, value: &'a str) -> Self {
+        self.envs
+            .push(EnvironmentVariable::builder().key(key).value(value).build());
+        self
+    }
+
     pub fn build(self) -> ServiceConfiguration<'a> {
         let ty = self.ty;
         let exec_start = self.exec_start;
@@ -187,6 +249,7 @@ impl<'a> ServiceConfigurationBuilder<'a> {
         let working_directory = self.working_directory;
         let user = self.user;
         let group = self.group;
+        let envs = self.envs;
         ServiceConfiguration {
             ty,
             exec_start,
@@ -195,6 +258,7 @@ impl<'a> ServiceConfigurationBuilder<'a> {
             working_directory,
             user,
             group,
+            envs,
         }
     }
 }
