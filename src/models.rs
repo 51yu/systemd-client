@@ -1,6 +1,3 @@
-use crate::{path_to_string, Result};
-use dbus::arg;
-
 // systemctl --state=help
 #[derive(Clone, Debug, PartialEq)]
 pub enum UnitLoadStateType {
@@ -214,9 +211,18 @@ impl ToString for UnitSubStateType {
     }
 }
 
-pub trait IntoModel<T> {
-    fn into_model(self) -> Result<T>;
-}
+pub type UnitTuple = (
+    String,
+    String,
+    String,
+    String,
+    String,
+    String,
+    zvariant::OwnedObjectPath,
+    u32,
+    String,
+    zvariant::OwnedObjectPath,
+);
 
 #[derive(Clone, Debug)]
 pub struct Unit {
@@ -226,41 +232,28 @@ pub struct Unit {
     pub active_state: UnitActiveStateType,
     pub sub_state: UnitSubStateType,
     pub follow_unit: Option<String>,
-    pub object_path: String,
+    pub object_path: zvariant::OwnedObjectPath,
     pub job_id: u32,
     pub job_ty: String,
-    pub job_object_path: String,
+    pub job_object_path: zvariant::OwnedObjectPath,
 }
 
-impl<'a> IntoModel<Unit>
-    for (
-        String,
-        String,
-        String,
-        String,
-        String,
-        String,
-        dbus::Path<'a>,
-        u32,
-        String,
-        dbus::Path<'a>,
-    )
-{
-    fn into_model(self) -> Result<Unit> {
-        let name = self.0;
-        let description = self.1;
-        let load_state: UnitLoadStateType = self.2.into();
-        let active_state: UnitActiveStateType = self.3.into();
-        let sub_state: UnitSubStateType = self.4.into();
-        let follow_unit = match self.5.is_empty() {
+impl From<UnitTuple> for Unit {
+    fn from(t: UnitTuple) -> Self {
+        let name = t.0;
+        let description = t.1;
+        let load_state: UnitLoadStateType = t.2.into();
+        let active_state: UnitActiveStateType = t.3.into();
+        let sub_state: UnitSubStateType = t.4.into();
+        let follow_unit = match t.5.is_empty() {
             true => None,
-            false => Some(self.5),
+            false => Some(t.5),
         };
-        let object_path = path_to_string(self.6)?;
-        let job_id = self.7;
-        let job_ty = self.8;
-        let job_object_path = path_to_string(self.9)?;
-        Ok(Unit {
+        let object_path = t.6;
+        let job_id = t.7;
+        let job_ty = t.8;
+        let job_object_path = t.9;
+        Unit {
             name,
             description,
             load_state,
@@ -271,36 +264,7 @@ impl<'a> IntoModel<Unit>
             job_id,
             job_ty,
             job_object_path,
-        })
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct Job {
-    pub id: u32,
-    pub unit_name: String,
-    pub ty: String,
-    pub state: String,
-    pub path: String,
-    pub unit_path: String,
-}
-
-impl<'a> IntoModel<Job> for (u32, String, String, String, dbus::Path<'a>, dbus::Path<'a>) {
-    fn into_model(self) -> Result<Job> {
-        let id = self.0;
-        let unit_name = self.1;
-        let ty = self.2;
-        let state = self.3;
-        let path = path_to_string(self.4)?;
-        let unit_path = path_to_string(self.5)?;
-        Ok(Job {
-            id,
-            unit_name,
-            ty,
-            state,
-            path,
-            unit_path,
-        })
+        }
     }
 }
 
@@ -313,6 +277,79 @@ pub struct UnitProps {
     pub sub_state: UnitSubStateType,
 }
 
+impl UnitProps {
+    pub fn builder() -> UnitPropsBuilder {
+        UnitPropsBuilder::default()
+    }
+}
+
+pub struct UnitPropsBuilder {
+    pub id: Option<String>,
+    pub description: Option<String>,
+    pub load_state: Option<UnitLoadStateType>,
+    pub active_state: Option<UnitActiveStateType>,
+    pub sub_state: Option<UnitSubStateType>,
+}
+
+impl Default for UnitPropsBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl UnitPropsBuilder {
+    pub fn new() -> Self {
+        UnitPropsBuilder {
+            id: None,
+            description: None,
+            load_state: None,
+            active_state: None,
+            sub_state: None,
+        }
+    }
+
+    pub fn id(mut self, id: String) -> Self {
+        self.id = Some(id);
+        self
+    }
+
+    pub fn description(mut self, description: String) -> Self {
+        self.description = Some(description);
+        self
+    }
+
+    pub fn load_state(mut self, load_state: String) -> Self {
+        self.load_state = Some(load_state.into());
+        self
+    }
+
+    pub fn active_state(mut self, active_state: String) -> Self {
+        self.active_state = Some(active_state.into());
+        self
+    }
+
+    pub fn sub_state(mut self, sub_state: String) -> Self {
+        self.sub_state = Some(sub_state.into());
+        self
+    }
+
+    pub fn build(self) -> UnitProps {
+        let id = self.id.expect("id undefined");
+        let description = self.description.expect("description undefined");
+        let load_state = self.load_state.expect("load state undefined");
+        let active_state = self.active_state.expect("active state undefined");
+        let sub_state = self.sub_state.expect("sub state undefined");
+        UnitProps {
+            id,
+            description,
+            load_state,
+            active_state,
+            sub_state,
+        }
+    }
+}
+
+/*
 impl IntoModel<UnitProps> for arg::PropMap {
     fn into_model(self) -> Result<UnitProps> {
         let id = arg::prop_cast::<String>(&self, "Id")
@@ -340,3 +377,4 @@ impl IntoModel<UnitProps> for arg::PropMap {
         })
     }
 }
+*/

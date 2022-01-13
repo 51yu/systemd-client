@@ -1,15 +1,10 @@
-use systemd_client::{
-    build_blocking_client,
-    manager::blocking::OrgFreedesktopSystemd1Manager,
-    models::{IntoModel, Unit},
-    Result, SystemdObjectType,
-};
+use systemd_client::{manager, models::Unit, Result};
 
 fn main() -> Result<()> {
-    let client = build_blocking_client(SystemdObjectType::Manager)?;
+    let client = manager::build_blocking_proxy()?;
     let units = client.list_units()?;
     for unit in units {
-        let unit: Unit = unit.into_model()?;
+        let unit: Unit = unit.into();
         println!("{:#?}", unit);
     }
     Ok(())

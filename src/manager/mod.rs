@@ -1,5 +1,3 @@
-#![allow(warnings)]
-// https://github.com/diwic/dbus-rs/issues/366
+mod proxy;
 
-pub mod blocking;
-pub mod nonblock;
+pub use proxy::*;

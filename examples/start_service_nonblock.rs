@@ -1,8 +1,6 @@
 use systemd_client::{
-    build_nonblock_client, create_unit_configuration_file,
-    manager::nonblock::OrgFreedesktopSystemd1Manager, models::IntoModel,
-    unit::nonblock::UnitProperties, Result, ServiceConfiguration, ServiceUnitConfiguration,
-    SystemdObjectType, UnitActiveStateType, UnitConfiguration, UnitLoadStateType, UnitProps,
+    create_unit_configuration_file, manager, unit, Result, ServiceConfiguration,
+    ServiceUnitConfiguration, UnitActiveStateType, UnitConfiguration, UnitLoadStateType,
     UnitSubStateType,
 };
 
@@ -24,30 +22,24 @@ async fn main() -> Result<()> {
     let svc_unit_literal = format!("{}", svc_unit);
     // create /etc/systemd/system/test.service
     create_unit_configuration_file("test.service", svc_unit_literal.as_bytes())?;
-    let (client, jh) = build_nonblock_client(SystemdObjectType::Manager)?;
+    let client = manager::build_nonblock_proxy().await?;
     let job_path = client.start_unit("test.service", "replace").await?;
-    println!("{}", job_path);
+    println!("{}", job_path.as_str());
     let svc_unit_path = client.get_unit("test.service").await?;
-    println!("{}", svc_unit_path);
-    // close connection
-    jh.abort();
+    println!("{}", svc_unit_path.as_str());
     // verify unit state given unit path
-    let (client, jh) = build_nonblock_client(SystemdObjectType::Unit(svc_unit_path))?;
-    let unit_props = client.get_unit_properties().await?;
-    let unit_props: UnitProps = unit_props.into_model()?;
+    let client = unit::build_nonblock_proxy(svc_unit_path).await?;
+    let unit_props = client.get_properties().await?;
     println!("{:?}", unit_props);
     assert_eq!(unit_props.load_state, UnitLoadStateType::Loaded);
     assert_eq!(unit_props.active_state, UnitActiveStateType::Active);
     assert_eq!(unit_props.sub_state, UnitSubStateType::Running);
     std::thread::sleep(std::time::Duration::from_secs(4));
     // service should exit after 3 sec
-    let unit_props = client.get_unit_properties().await?;
-    let unit_props: UnitProps = unit_props.into_model()?;
+    let unit_props = client.get_properties().await?;
     println!("{:?}", unit_props);
     assert_eq!(unit_props.load_state, UnitLoadStateType::Loaded);
     assert_eq!(unit_props.active_state, UnitActiveStateType::Inactive);
     assert_eq!(unit_props.sub_state, UnitSubStateType::Dead);
-    // close connection
-    jh.abort();
     Ok(())
 }
