@@ -16,8 +16,7 @@ keywords = ["systemd", "zbus"]
 zbus = { version = "2.0.1" }
 zvariant = "3.0.0"
 thiserror = "1.0.29"
-tokio = { version = "1.11.0", features = ["macros", "rt-multi-thread", "net"] }
 tracing = "0.1"
 
-[build-dependencies]
-anyhow = "1.0.51"
+[dev-dependencies]
+tokio = { version = "1.11.0", features = ["macros", "rt-multi-thread"] }
