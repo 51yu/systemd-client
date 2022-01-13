@@ -1,21 +1,16 @@
 # systemd-client
-[`systemd dbus`] client lib using [`dbus-codegen`]
+[`systemd dbus`] client lib using [`zbus`]
 ## Examples
 ### Blocking
 list units
 ```rust
-use systemd_client::{
-    build_blocking_client,
-    manager::blocking::OrgFreedesktopSystemd1Manager,
-    models::{IntoModel, Unit},
-    Result, SystemdObjectType,
-};
+use systemd_client::{manager, models::Unit, Result};
 
 fn main() -> Result<()> {
-    let client = build_blocking_client(SystemdObjectType::Manager)?;
+    let client = manager::build_blocking_proxy()?;
     let units = client.list_units()?;
     for unit in units {
-        let unit: Unit = unit.into_model()?;
+        let unit: Unit = unit.into();
         println!("{:#?}", unit);
     }
     Ok(())
@@ -24,10 +19,8 @@ fn main() -> Result<()> {
 create and start service
 ```rust
 use systemd_client::{
-    build_blocking_client, create_unit_configuration_file,
-    manager::blocking::OrgFreedesktopSystemd1Manager, models::IntoModel,
-    unit::blocking::UnitProperties, Result, ServiceConfiguration, ServiceUnitConfiguration,
-    SystemdObjectType, UnitActiveStateType, UnitConfiguration, UnitLoadStateType, UnitProps,
+    create_unit_configuration_file, manager, unit, Result, ServiceConfiguration,
+    ServiceUnitConfiguration, UnitActiveStateType, UnitConfiguration, UnitLoadStateType, UnitProps,
     UnitSubStateType,
 };
 
@@ -48,23 +41,23 @@ fn main() -> Result<()> {
     let svc_unit_literal = format!("{}", svc_unit);
     // create /etc/systemd/system/test.service
     create_unit_configuration_file("test.service", svc_unit_literal.as_bytes())?;
-    let client = build_blocking_client(SystemdObjectType::Manager)?;
+    let client = manager::build_blocking_proxy()?;
     let job_path = client.start_unit("test.service", "replace")?;
-    println!("{}", job_path);
+    println!("{}", job_path.as_str());
     let svc_unit_path = client.get_unit("test.service")?;
-    println!("{}", svc_unit_path);
+    println!("{}", svc_unit_path.as_str());
     // verify unit state given unit path
-    let client = build_blocking_client(SystemdObjectType::Unit(svc_unit_path))?;
-    let unit_props = client.get_unit_properties()?;
-    let unit_props: UnitProps = unit_props.into_model()?;
+    let client = unit::build_blocking_proxy(svc_unit_path)?;
+    let unit_props = client.get_properties()?;
+    let unit_props: UnitProps = unit_props.into();
     println!("{:?}", unit_props);
     assert_eq!(unit_props.load_state, UnitLoadStateType::Loaded);
     assert_eq!(unit_props.active_state, UnitActiveStateType::Active);
     assert_eq!(unit_props.sub_state, UnitSubStateType::Running);
     std::thread::sleep(std::time::Duration::from_secs(4));
     // service should exit after 3 sec
-    let unit_props = client.get_unit_properties()?;
-    let unit_props: UnitProps = unit_props.into_model()?;
+    let unit_props = client.get_properties()?;
+    let unit_props: UnitProps = unit_props.into();
     println!("{:?}", unit_props);
     assert_eq!(unit_props.load_state, UnitLoadStateType::Loaded);
     assert_eq!(unit_props.active_state, UnitActiveStateType::Inactive);
@@ -75,33 +68,24 @@ fn main() -> Result<()> {
 ### Non Block
 list units
 ```rust
-use systemd_client::{
-    build_nonblock_client,
-    manager::nonblock::OrgFreedesktopSystemd1Manager,
-    models::{IntoModel, Unit},
-    Result, SystemdObjectType,
-};
+use systemd_client::{manager, models::Unit, Result};
 
 #[tokio::main]
 pub async fn main() -> Result<()> {
-    let (client, jh) = build_nonblock_client(SystemdObjectType::Manager)?;
+    let client = manager::build_nonblock_proxy().await?;
     let units = client.list_units().await?;
     for unit in units {
-        let unit: Unit = unit.into_model()?;
+        let unit: Unit = unit.into();
         println!("{:#?}", unit);
     }
-    // close connection
-    jh.abort();
     Ok(())
 }
 ```
 create and start service
 ```rust
 use systemd_client::{
-    build_nonblock_client, create_unit_configuration_file,
-    manager::nonblock::OrgFreedesktopSystemd1Manager, models::IntoModel,
-    unit::nonblock::UnitProperties, Result, ServiceConfiguration, ServiceUnitConfiguration,
-    SystemdObjectType, UnitActiveStateType, UnitConfiguration, UnitLoadStateType, UnitProps,
+    create_unit_configuration_file, manager, unit, Result, ServiceConfiguration,
+    ServiceUnitConfiguration, UnitActiveStateType, UnitConfiguration, UnitLoadStateType,
     UnitSubStateType,
 };
 
@@ -123,41 +107,28 @@ async fn main() -> Result<()> {
     let svc_unit_literal = format!("{}", svc_unit);
     // create /etc/systemd/system/test.service
     create_unit_configuration_file("test.service", svc_unit_literal.as_bytes())?;
-    let (client, jh) = build_nonblock_client(SystemdObjectType::Manager)?;
+    let client = manager::build_nonblock_proxy().await?;
     let job_path = client.start_unit("test.service", "replace").await?;
-    println!("{}", job_path);
+    println!("{}", job_path.as_str());
     let svc_unit_path = client.get_unit("test.service").await?;
-    println!("{}", svc_unit_path);
-    // close connection
-    jh.abort();
+    println!("{}", svc_unit_path.as_str());
     // verify unit state given unit path
-    let (client, jh) = build_nonblock_client(SystemdObjectType::Unit(svc_unit_path))?;
-    let unit_props = client.get_unit_properties().await?;
-    let unit_props: UnitProps = unit_props.into_model()?;
+    let client = unit::build_nonblock_proxy(svc_unit_path).await?;
+    let unit_props = client.get_properties().await?;
     println!("{:?}", unit_props);
     assert_eq!(unit_props.load_state, UnitLoadStateType::Loaded);
     assert_eq!(unit_props.active_state, UnitActiveStateType::Active);
     assert_eq!(unit_props.sub_state, UnitSubStateType::Running);
     std::thread::sleep(std::time::Duration::from_secs(4));
     // service should exit after 3 sec
-    let unit_props = client.get_unit_properties().await?;
-    let unit_props: UnitProps = unit_props.into_model()?;
+    let unit_props = client.get_properties().await?;
     println!("{:?}", unit_props);
     assert_eq!(unit_props.load_state, UnitLoadStateType::Loaded);
     assert_eq!(unit_props.active_state, UnitActiveStateType::Inactive);
     assert_eq!(unit_props.sub_state, UnitSubStateType::Dead);
-    // close connection
-    jh.abort();
     Ok(())
 }
 ```
-## Development
-### Install Tools
-```sh
-sudo apt install libdbus-1-dev pkg-config
-```
-### Codegen
-edit `build.rs` and create module for dbus object
 
 [`systemd dbus`]: https://www.freedesktop.org/software/systemd/man/org.freedesktop.systemd1.html
-[`dbus-codegen`]: https://github.com/diwic/dbus-rs/tree/master/dbus-codegen
+[`zbus`]: https://gitlab.freedesktop.org/dbus/zbus

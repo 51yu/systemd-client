@@ -19,8 +19,6 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
-      - name: Install lib
-        run: sudo apt install libdbus-1-dev pkg-config
       - uses: actions-rs/cargo@v1
         with:
           command: check
@@ -34,8 +32,6 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
-      - name: Install lib
-        run: sudo apt install libdbus-1-dev pkg-config
       - uses: actions-rs/cargo@v1
         with:
           command: test
@@ -64,8 +60,6 @@ jobs:
           toolchain: stable
           override: true
       - run: rustup component add clippy
-      - name: Install lib
-        run: sudo apt install libdbus-1-dev pkg-config
       - uses: actions-rs/cargo@v1
         with:
           command: clippy

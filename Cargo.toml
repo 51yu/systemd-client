@@ -1,25 +1,23 @@
 [package]
 name = "systemd_client"
-version = "0.1.7"
+version = "0.2.0"
 edition = "2021"
 authors = ["Li Yu <li.yu.sh0211@gmail.com>"]
 license = "Apache-2.0"
 repository = "https://github.com/51yu/systemd-client"
 homepage = "https://github.com/51yu/systemd-client"
 documentation = "https://docs.rs/systemd-client/"
-description = "systemd client library implemented with dbus"
-keywords = ["systemd", "dbus"]
+description = "systemd client library implemented with zbus"
+keywords = ["systemd", "zbus"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-dbus = { version = "0.9.5", features = ["futures"] }
-dbus-tokio = "0.7.5"
+zbus = { version = "2.0.1" }
+zvariant = "3.0.0"
 thiserror = "1.0.29"
-tokio = { version = "1.11.0", features = ["macros", "rt", "rt-multi-thread"] }
+tokio = { version = "1.11.0", features = ["macros", "rt-multi-thread", "net"] }
 tracing = "0.1"
 
 [build-dependencies]
 anyhow = "1.0.51"
-dbus-codegen = "0.10.0"
-dbus = "0.9.5"

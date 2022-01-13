@@ -15,17 +15,17 @@ pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Debug, Error)]
 pub enum ErrorImpl {
-    #[error("dbus error, detail: {0:?}")]
-    DBus(#[from] dbus::Error),
+    #[error("zbus error, detail: {0:?}")]
+    ZBus(#[from] zbus::Error),
     #[error("into string error, detail: {0:?}")]
     IntoString(#[from] std::ffi::IntoStringError),
     #[error("io error, detail: {0:?}")]
     Io(#[from] std::io::Error),
 }
 
-impl From<dbus::Error> for Error {
-    fn from(err: dbus::Error) -> Self {
-        Error(Box::new(ErrorImpl::DBus(err)))
+impl From<zbus::Error> for Error {
+    fn from(err: zbus::Error) -> Self {
+        Error(Box::new(ErrorImpl::ZBus(err)))
     }
 }
 
