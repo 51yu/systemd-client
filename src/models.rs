@@ -218,10 +218,10 @@ pub type UnitTuple = (
     String,
     String,
     String,
-    zvariant::OwnedObjectPath,
+    zbus::zvariant::OwnedObjectPath,
     u32,
     String,
-    zvariant::OwnedObjectPath,
+    zbus::zvariant::OwnedObjectPath,
 );
 
 #[derive(Clone, Debug)]
@@ -232,10 +232,10 @@ pub struct Unit {
     pub active_state: UnitActiveStateType,
     pub sub_state: UnitSubStateType,
     pub follow_unit: Option<String>,
-    pub object_path: zvariant::OwnedObjectPath,
+    pub object_path: zbus::zvariant::OwnedObjectPath,
     pub job_id: u32,
     pub job_ty: String,
-    pub job_object_path: zvariant::OwnedObjectPath,
+    pub job_object_path: zbus::zvariant::OwnedObjectPath,
 }
 
 impl From<UnitTuple> for Unit {

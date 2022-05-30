@@ -54,7 +54,7 @@ impl SystemdUnitProxy<'_> {
 }
 
 pub async fn build_nonblock_proxy(
-    object: zvariant::OwnedObjectPath,
+    object: zbus::zvariant::OwnedObjectPath,
 ) -> Result<SystemdUnitProxy<'static>> {
     let connection = zbus::Connection::system().await?;
     let proxy = SystemdUnitProxy::builder(&connection)
@@ -65,7 +65,7 @@ pub async fn build_nonblock_proxy(
 }
 
 pub fn build_blocking_proxy(
-    object: zvariant::OwnedObjectPath,
+    object: zbus::zvariant::OwnedObjectPath,
 ) -> Result<SystemdUnitProxyBlocking<'static>> {
     let connection = zbus::blocking::Connection::system()?;
     let proxy = SystemdUnitProxyBlocking::builder(&connection)
