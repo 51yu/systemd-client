@@ -13,8 +13,7 @@ keywords = ["systemd", "zbus"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-zbus = { version = "2.0.1" }
-zvariant = "3.0.0"
+zbus = { version = "2.1.0" }
 thiserror = "1.0.29"
 tracing = "0.1"
 
