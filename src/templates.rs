@@ -4,13 +4,15 @@ use std::fmt::Display;
 pub struct UnitConfiguration<'a> {
     pub description: &'a str,
     pub after: Vec<&'a str>,
+    pub wants: Vec<&'a str>,
 }
 
 impl<'a> Display for UnitConfiguration<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "[Unit]")?;
         writeln!(f, "Description={}", self.description)?;
-        writeln!(f, "After={}", self.after.join(" "))
+        writeln!(f, "After={}", self.after.join(" "))?;
+        writeln!(f, "Wants={}", self.wants.join(" "))
     }
 }
 
@@ -24,6 +26,7 @@ impl<'a> UnitConfiguration<'a> {
 pub struct UnitConfigurationBuilder<'a> {
     pub description: &'a str,
     pub after: Vec<&'a str>,
+    pub wants: Vec<&'a str>,
 }
 
 impl<'a> UnitConfigurationBuilder<'a> {
@@ -37,10 +40,16 @@ impl<'a> UnitConfigurationBuilder<'a> {
         self
     }
 
+    pub fn wants(mut self, wants: &'a str) -> Self {
+        self.wants.push(wants);
+        self
+    }
+
     pub fn build(self) -> UnitConfiguration<'a> {
         let description = self.description;
         let after = self.after;
-        UnitConfiguration { description, after }
+        let wants = self.wants;
+        UnitConfiguration { description, after, wants }
     }
 }
 
