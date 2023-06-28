@@ -1,3 +1,5 @@
+use zbus::{blocking, zvariant::OwnedObjectPath, Connection};
+
 use crate::{Result, UnitProps};
 
 #[zbus::dbus_proxy(
@@ -53,10 +55,8 @@ impl SystemdUnitProxy<'_> {
     }
 }
 
-pub async fn build_nonblock_proxy(
-    object: zvariant::OwnedObjectPath,
-) -> Result<SystemdUnitProxy<'static>> {
-    let connection = zbus::Connection::system().await?;
+pub async fn build_nonblock_proxy(object: OwnedObjectPath) -> Result<SystemdUnitProxy<'static>> {
+    let connection = Connection::system().await?;
     let proxy = SystemdUnitProxy::builder(&connection)
         .path(object)?
         .build()
@@ -64,10 +64,8 @@ pub async fn build_nonblock_proxy(
     Ok(proxy)
 }
 
-pub fn build_blocking_proxy(
-    object: zvariant::OwnedObjectPath,
-) -> Result<SystemdUnitProxyBlocking<'static>> {
-    let connection = zbus::blocking::Connection::system()?;
+pub fn build_blocking_proxy(object: OwnedObjectPath) -> Result<SystemdUnitProxyBlocking<'static>> {
+    let connection = blocking::Connection::system()?;
     let proxy = SystemdUnitProxyBlocking::builder(&connection)
         .path(object)?
         .build()?;
