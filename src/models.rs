@@ -1,3 +1,5 @@
+use zbus::zvariant::OwnedObjectPath;
+
 // systemctl --state=help
 #[derive(Clone, Debug, PartialEq)]
 pub enum UnitLoadStateType {
@@ -218,10 +220,10 @@ pub type UnitTuple = (
     String,
     String,
     String,
-    zvariant::OwnedObjectPath,
+    OwnedObjectPath,
     u32,
     String,
-    zvariant::OwnedObjectPath,
+    OwnedObjectPath,
 );
 
 #[derive(Clone, Debug)]
@@ -232,10 +234,10 @@ pub struct Unit {
     pub active_state: UnitActiveStateType,
     pub sub_state: UnitSubStateType,
     pub follow_unit: Option<String>,
-    pub object_path: zvariant::OwnedObjectPath,
+    pub object_path: OwnedObjectPath,
     pub job_id: u32,
     pub job_ty: String,
-    pub job_object_path: zvariant::OwnedObjectPath,
+    pub job_object_path: OwnedObjectPath,
 }
 
 impl From<UnitTuple> for Unit {
