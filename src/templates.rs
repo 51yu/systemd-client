@@ -49,7 +49,11 @@ impl<'a> UnitConfigurationBuilder<'a> {
         let description = self.description;
         let after = self.after;
         let wants = self.wants;
-        UnitConfiguration { description, after, wants }
+        UnitConfiguration {
+            description,
+            after,
+            wants,
+        }
     }
 }
 
